@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: remediation-worker
+  labels:
+    app: remediation-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: remediation-worker
+  template:
+    metadata:
+      labels:
+        app: remediation-worker
+    spec:
+      containers:
+      - name: worker
+        # Etiket olarak 'latest' yerine 'v1' kullanalım ki k8s değişimi anlasın
+        image: cloud-remediation-engine-remediation-worker:v1
+        imagePullPolicy: Never
+        env:
+        - name: AWS_ENDPOINT_URL
+          value: "http://host.docker.internal:4566"
+        - name: AWS_REGION
+          value: "eu-central-1"
+        - name: AWS_ACCESS_KEY_ID
+          value: "test"
+        - name: AWS_SECRET_ACCESS_KEY
+          value: "test"
