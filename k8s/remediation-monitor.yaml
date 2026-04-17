@@ -1,18 +1,14 @@
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
+apiVersion: v1
+kind: Service
 metadata:
-  name: cloud-remediation-monitor
-  namespace: monitoring
+  name: cloud-remediation-service
   labels:
-    release: kube-stack         # Targets listendeki diğer servislerle aynı label
-    prometheus: monitoring-stack # Terminal çıktındaki ikinci ihtimal
+    app: cloud-remediation-engine
 spec:
-  namespaceSelector:
-    any: true # Uygulaman farklı bir namespace'de olsa bile bulur
   selector:
-    matchLabels:
-      app: cloud-remediation-engine # service.yaml'daki label ile aynı
-  endpoints:
-  - port: metrics # service.yaml'daki port ismiyle aynı
-    path: /metrics
-    interval: 15s
+    app: cloud-remediation-engine
+  ports:
+    - name: metrics # ServiceMonitor ile bu ismin eşleşmesi şart
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
