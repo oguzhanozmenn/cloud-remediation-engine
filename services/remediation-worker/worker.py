@@ -3,13 +3,22 @@ import os
 import time
 import json
 from botocore.exceptions import EndpointConnectionError
+from prometheus_client import start_http_server, Counter, Summary
 
-# 1. Ortam Değişkenlerini Yapılandır (K8s veya Docker'dan gelir)
+# --- PROMETHEUS METRİKLERİ ---
+# Başarılı onarımları sayacak metrik
+REMEDIATIONS_TOTAL = Counter('cloud_remediation_total', 'Toplam düzeltilen güvenlik ihlali sayısı')
+# İşlem süresini ölçecek metrik
+PROCESS_TIME = Summary('remediation_processing_seconds', 'Düzeltme işleminin saniye cinsinden süresi')
+
+# 1. Ortam Değişkenlerini Yapılandır
 ENDPOINT_URL = os.getenv("AWS_ENDPOINT_URL", "http://host.docker.internal:4566")
 AWS_REGION = os.getenv("AWS_REGION", "eu-central-1")
 QUEUE_NAME = "security-alerts-queue"
+METRICS_PORT = 8000  # Prometheus'un veriyi çekeceği port
 
 
+@PROCESS_TIME.time()  # Fonksiyonun ne kadar sürdüğünü otomatik ölçer
 def fix_s3_bucket(bucket_name):
     """Kovanın Public Access ayarlarını kapatan fonksiyon"""
     try:
@@ -26,22 +35,24 @@ def fix_s3_bucket(bucket_name):
             }
         )
         print(f"✅ Başarılı: {bucket_name} artık dış dünyaya kapalı!")
+        REMEDIATIONS_TOTAL.inc()  # Başarılı işlem sonrası sayacı 1 artır
+
     except Exception as e:
         print(f"❌ S3 düzeltme hatası: {e}")
 
 
 def start_worker():
+    # Metrik sunucusunu ayrı bir thread gibi arka planda başlatır
+    print(f"📊 Metrik sunucusu port {METRICS_PORT} üzerinde başlatıldı...")
+    start_http_server(METRICS_PORT)
+
     print(f"🤖 Worker başlatıldı... Hedef Endpoint: {ENDPOINT_URL}")
 
     while True:
         try:
-            # SQS Bağlantısını kur
             sqs = boto3.client('sqs', endpoint_url=ENDPOINT_URL, region_name=AWS_REGION)
-
-            # Kuyruk URL'sini al
             queue_url = sqs.get_queue_url(QueueName=QUEUE_NAME)['QueueUrl']
 
-            # Mesaj bekle (Long Polling)
             response = sqs.receive_message(
                 QueueUrl=queue_url,
                 MaxNumberOfMessages=1,
@@ -50,16 +61,13 @@ def start_worker():
 
             if 'Messages' in response:
                 for message in response['Messages']:
-                    # HATA BURADAYDI: message['MessageBody'] değil, message['Body'] olmalı
                     body = json.loads(message['Body'])
                     bucket_name = body.get('bucket_name')
 
                     if bucket_name:
                         fix_s3_bucket(bucket_name)
 
-                    # İşlem bitince mesajı kuyruktan sil
                     sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=message['ReceiptHandle'])
-
             else:
                 print("☁️ Kuyruk boş, dinlemeye devam ediyorum...")
 

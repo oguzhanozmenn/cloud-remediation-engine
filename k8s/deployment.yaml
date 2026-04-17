@@ -13,18 +13,20 @@ spec:
     metadata:
       labels:
         app: remediation-worker
+      annotations:
+        # Prometheus bu podu otomatik keşfetsin diye:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
       - name: worker
-        # Etiket olarak 'latest' yerine 'v1' kullanalım ki k8s değişimi anlasın
-        image: cloud-remediation-engine-remediation-worker:v1
-        imagePullPolicy: Never
+        image: oguzhanozmenn/remediation-worker:v1.1 # Yeni versiyon etiketi kullanmanı öneririm
+        ports:
+        - containerPort: 8000
+          name: metrics
         env:
         - name: AWS_ENDPOINT_URL
           value: "http://host.docker.internal:4566"
         - name: AWS_REGION
           value: "eu-central-1"
-        - name: AWS_ACCESS_KEY_ID
-          value: "test"
-        - name: AWS_SECRET_ACCESS_KEY
-          value: "test"
