@@ -4,18 +4,15 @@ metadata:
   name: cloud-remediation-monitor
   namespace: monitoring
   labels:
-    # Terminal çıktındaki her iki Prometheus ihtimalini de kapsıyoruz
-    release: monitoring-stack
-    app: cloud-remediation-engine
+    release: kube-stack         # Targets listendeki diğer servislerle aynı label
+    prometheus: monitoring-stack # Terminal çıktındaki ikinci ihtimal
 spec:
+  namespaceSelector:
+    any: true # Uygulaman farklı bir namespace'de olsa bile bulur
   selector:
     matchLabels:
-      # service.yaml içindeki label ile birebir aynı olmalı
-      app: cloud-remediation-engine
+      app: cloud-remediation-engine # service.yaml'daki label ile aynı
   endpoints:
-  - port: metrics
+  - port: metrics # service.yaml'daki port ismiyle aynı
     path: /metrics
     interval: 15s
-  namespaceSelector:
-    # Eğer uygulaman 'default' namespace içindeyse burası tüm namespace'leri tarar
-    any: true

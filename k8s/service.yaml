@@ -4,15 +4,11 @@ metadata:
   name: cloud-remediation-service
   labels:
     app: cloud-remediation-engine
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "8000"
-    prometheus.io/path: "/metrics"
 spec:
   selector:
     app: cloud-remediation-engine
   ports:
-    - name: metrics        # <--- BURAYI EKLEDİK, ÇOK ÖNEMLİ!
+    - name: metrics # ServiceMonitor buradaki isme bakar
       protocol: TCP
       port: 8000
       targetPort: 8000
