@@ -15,9 +15,3 @@ spec:
     - protocol: TCP
       port: 8000
       targetPort: 8000
-      metadata:
-        name: bulut-düzeltme-hizmeti
-        annotations:
-          prometheus.io/scrape: "true"
-          prometheus.io/port: "8000" # Uygulaman hangi porttan metrik veriyorsa o (genelde 8000)
-          prometheus.io/path: "/metrics"

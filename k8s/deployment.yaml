@@ -3,30 +3,24 @@ kind: Deployment
 metadata:
   name: remediation-worker
   labels:
-    app: remediation-worker
+    app: remediation-worker # Burası kalsın
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: remediation-worker
+      app: cloud-remediation-engine # Burayı Service ile eşitledik
   template:
     metadata:
       labels:
-        app: remediation-worker
+        app: cloud-remediation-engine # Burayı Service ile eşitledik
       annotations:
-        # Prometheus bu podu otomatik keşfetsin diye:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8000"
         prometheus.io/path: "/metrics"
     spec:
       containers:
       - name: worker
-        image: oguzhanozmenn/remediation-worker:v1.1 # Yeni versiyon etiketi kullanmanı öneririm
+        image: oguzhanozmenn/remediation-worker:v1.1
         ports:
         - containerPort: 8000
-          name: metrics
-        env:
-        - name: AWS_ENDPOINT_URL
-          value: "http://host.docker.internal:4566"
-        - name: AWS_REGION
-          value: "eu-central-1"
+          name: http # Service'teki port ismiyle (http) uyumlu olması için
