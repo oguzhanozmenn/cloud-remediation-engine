@@ -4,11 +4,12 @@ metadata:
   name: cloud-remediation-monitor
   namespace: monitoring
   labels:
-    release: kube-stack # Prometheus'un bunu fark etmesi için EN KRİTİK etiket
+    release: kube-stack # Prometheus'un bunu tanıması için şart!
 spec:
   selector:
     matchLabels:
-      app: cloud-remediation-engine # service.yaml'daki label ile aynı olmalı
+      app: cloud-remediation-engine
   endpoints:
   - port: metrics
+    path: /metrics
     interval: 15s
