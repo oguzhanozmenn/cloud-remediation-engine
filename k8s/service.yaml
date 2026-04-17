@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-remediation-service
+  labels:
+    app: cloud-remediation-engine # Kendi deployment'ındaki app etiketi neyse o olmalı
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+spec:
+  selector:
+    app: cloud-remediation-engine # Burası çok önemli, podunu bulmasını sağlar
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
