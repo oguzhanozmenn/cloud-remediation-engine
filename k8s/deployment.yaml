@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: remediation-worker
+  labels:
+    app: cloud-remediation-engine
 spec:
   replicas: 1
   selector:
@@ -19,10 +21,17 @@ spec:
       containers:
       - name: worker
         image: ozii4333/remediation-worker:v1.2
+        imagePullPolicy: Always  # İmajda değişiklik yaptıysan her zaman yenisini çekmesi için
         ports:
         - containerPort: 8000
           name: metrics
         env:
+        # --- KRİTİK: Logların terminale anında düşmesini sağlar ---
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        # --- SQS ve S3 Endpoint Ayarı ---
+        # Eğer LocalStack Kubernetes içinde bir servis ise servis adını yazmalısın.
+        # Eğer LocalStack'i direkt Mac üzerinde 'localstack start' ile çalıştırıyorsan bu kalsın.
         - name: AWS_ENDPOINT_URL
           value: "http://host.docker.internal:4566"
         - name: AWS_REGION

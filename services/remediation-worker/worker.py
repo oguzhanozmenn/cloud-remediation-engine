@@ -42,9 +42,9 @@ def fix_s3_bucket(bucket_name):
 
 
 def start_worker():
-    # Metrik sunucusunu ayrı bir thread gibi arka planda başlatır
+    # addr='0.0.0.0' ekleyerek dış bağlantılara izin veriyoruz
     print(f"📊 Metrik sunucusu port {METRICS_PORT} üzerinde başlatıldı...")
-    start_http_server(METRICS_PORT)
+    start_http_server(METRICS_PORT, addr='0.0.0.0')
 
     print(f"🤖 Worker başlatıldı... Hedef Endpoint: {ENDPOINT_URL}")
 
